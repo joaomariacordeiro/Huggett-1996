@@ -1,16 +1,14 @@
 """
 calibration.py — Calibration data and parameters for Huggett (1996).
-
+ 
 Contains:
     - Death probabilities from Jordan (1975), ages 20-98
     - Age-earnings profile from paper Figure 1 (loaded from CSV)
     - build_params(): constructs the full parameter dictionary (Table 2, p.478)
 """
-
+ 
 import numpy as np
-import pandas as pd
-import os
-
+ 
 # ── Death probabilities: Jordan (1975), ages 20-98 ──
 DEATH_PROBS = np.array([
     .00159,.00169,.00174,.00172,.00165,.00156,.00149,.00145,.00145,.00149,
@@ -21,29 +19,23 @@ DEATH_PROBS = np.array([
     .04871,.05230,.05623,.06060,.06542,.07066,.07636,.08271,.08986,.09788,
     .10732,.11799,.12895,.13920,.14861,.16039,.17303,.18665,.20194,.21877,
     .23601,.25289,.26973,.28612,.30128,.31416,.32915,.34450,.36018])
-
-# ── Age-earnings profile: loaded from CSV ──
-# Paper Figure 1: SSA median male earnings x LFP rates (Handbook of Labor Statistics, 1985)
-# Asymmetric hump, peak ~1.4 at age 48
-_csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                          "huggett1996_fig1_age_earnings.csv")
-if os.path.exists(_csv_path):
-    AGE_EARNINGS = pd.read_csv(_csv_path)["earnings_ratio_to_overall_mean"].to_numpy(dtype=np.float64)
-else:
-    # Fallback: embedded values if CSV not found
-    AGE_EARNINGS = np.array([
-        .20,.24,.29,.35,.42,.50,.58,.66,.74,.81,
-        .87,.93,.98,1.03,1.07,1.11,1.15,1.18,1.21,1.24,
-        1.27,1.29,1.31,1.33,1.35,1.37,1.38,1.39,1.40,1.39,
-        1.38,1.36,1.34,1.30,1.26,1.20,1.14,1.06,.97,.87,
-        .76,.64,.52,.40,.28,
-        .16,.10,.06,.04,.03,.02,.015,.010,.007,.005,
-        .003,.002,.0015,.001,.0007,
-        .0005,.0004,.0003,.0002,.00015,
-        .0001,8e-5,6e-5,4e-5,3e-5,
-        2e-5,1e-5,1e-5,1e-5,5e-6,3e-6,2e-6,1e-6,1e-6])
-
-
+ 
+# ── Age-earnings profile: exp(ybar_t) from Huggett via Corbae ──
+# Source: Dean Corbae homework handout (data obtained from Mark Huggett).
+# Used in Kirkby's VFI Toolkit replication. Values are exp(ybar_t), the
+# deterministic component of labour endowment e(z,t) = exp(z_t + ybar_t).
+# Ages 20-98. Hump-shaped, peak ~0.80 at age 47, zero from age 73 onward.
+AGE_EARNINGS = np.array([
+    0.0911, 0.1573, 0.2268, 0.2752, 0.3218, 0.3669, 0.4114, 0.4559, 0.4859, 0.5164,
+    0.5474, 0.5786, 0.6097, 0.6311, 0.6517, 0.6711, 0.6893, 0.7060, 0.7213, 0.7355,
+    0.7489, 0.7619, 0.7747, 0.7783, 0.7825, 0.7874, 0.7931, 0.7994, 0.7923, 0.7850,
+    0.7771, 0.7679, 0.7567, 0.7351, 0.7105, 0.6822, 0.6500, 0.6138, 0.5675, 0.5183,
+    0.4672, 0.3935, 0.3239, 0.2596, 0.1955, 0.1408, 0.0959, 0.0604, 0.0459, 0.0342,
+    0.0246, 0.0165, 0.0091, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0])
+ 
+ 
 def build_params(**overrides):
     """
     Build the default parameter dictionary (Paper Table 2, p.478).
@@ -65,3 +57,4 @@ def build_params(**overrides):
     )
     p.update(overrides)
     return p
+ 
