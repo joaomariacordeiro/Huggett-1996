@@ -21,31 +21,38 @@ except ImportError:
         def wrapper(fn): return fn
         return wrapper
 
+''' 
+
+@njit tells Numba to compile that function to machine code the first time it's called, so every subsequent call runs at C-like speed instead of Python (slower).
+It matters here because _u1 and _inv_u1 are called millions of times — once for every combination of agent × age × earnings state × asset grid point inside the EGM loops. 
+Without @njit, each call goes through Python's interpreter, which is slow. 
+With it, the function becomes a raw machine instruction that the CPU executes directly.
+
+'''
 
 # ── Preferences ──
 
 @njit
 def _u1(c, sigma):
-    """Marginal utility of CRRA: u'(c) = c^(-sigma)."""
-    return c ** (-sigma)
+    return c ** (-sigma) # Marginal utility of a CRRA utility function (Euler Equation)
+
 
 @njit
 def _inv_u1(mu, sigma):
-    """Inverse marginal utility: c = mu^(-1/sigma)."""
-    return mu ** (-1.0 / sigma)
+    return mu ** (-1.0 / sigma) # Converting marginal utility into the implied consumption level (inverted Euler Equation)
 
 
 # ── Technology ──
 
+# Paper p.478: "The technology level A is normalized so that the wage equals 1.0 when the capital output ratio equals 3.0 and the labor input per capita is normalized at 1.0."
+# Choose TFP (A) so that w = w_target = 1 when K/Y = 3 and L = 1
 def _normalize_A(alpha, KY=3.0, w_target=1.0):
-    """Choose TFP so that w = w_target when K/Y = KY and L = 1 (paper p.478)."""
     Y = w_target / (1.0 - alpha)
-    K = KY * Y
+    K = KY * Y 
     return Y / (K ** alpha)
 
 
 def _prices(K, L, A, alpha, delta):
-    """Cobb-Douglas output, gross return, and wage."""
     Y = A * K ** alpha * L ** (1 - alpha)
     r = alpha * A * K ** (alpha - 1) * L ** (1 - alpha) - delta
     w = (1 - alpha) * A * K ** alpha * L ** (-alpha)
@@ -54,15 +61,19 @@ def _prices(K, L, A, alpha, delta):
 
 # ── Social Security ──
 
+# Eq.6: balanced-budget SS benefit per retiree.
 def _ss_benefit(theta, w, L, retire_mass):
-    """Paper eq.6: balanced-budget SS benefit per retiree."""
     return theta * w * L / max(retire_mass, 1e-12)
 
 
 # ── Asset Grid ──
 
+# Paper p.492: 
+# "The number of grid points varies between as little as 41 for economies without earnings uncertainty to as many as 301 for the economies with earnings uncertainty."
+# Note: paper used different grids depending on the type of economy. This choice, in my view might have been due to computational power, back in the 90s
+# Here, I will stick with a uniform asset grid with 301 and spacing 0.40 
+
 def asset_grid(kmin, kmax, nk):
-    """Uniform asset grid (paper p.492: uniform with spacing 0.40)."""
     return np.linspace(kmin, kmax, nk)
 
 
@@ -72,35 +83,39 @@ def asset_grid(kmin, kmax, nk):
 def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
                   beta, sigma, R, w, T, b, theta, nu,
                   kprime_min_global, c_floor=1e-10):
-    """
-    Solve the household problem backward from the terminal age using EGM.
-
-    Budget (paper eq.1): c + a' = R*a + y
-      working: y = (1 - theta - nu) * w * e(z,t) + T
-      retired: y = b + T
-    """
+# Budget constraint (paper eq.1): c + a' = R·a + y
+# Worker: y = (1 - θ - ν)·w·e(z,t) + T
+# Retiree: y = b + T
     A, nz, nk = len(age_eff), len(zgrid), len(agrid)
-    kp = np.zeros((A, nz, nk))
-    c  = np.zeros((A, nz, nk))
+    kp = np.zeros((A, nz, nk)) # how much an agent of this age, earnings state, and wealth level saves for next period
+    c  = np.zeros((A, nz, nk)) # how much an agent of this age, earnings state, and wealth level consumes
 
     # Terminal age: consume everything
+    # At the last age, the agent dies for sure (no reason to save)
+    # Income is just the social security benefit plus transfers (everyone this age is retired). 
+    # Cash on hand is R times their assets (return on savings) plus income y. 
     for iz in range(nz):
         y = b + T
         for ik in range(nk):
             c[A-1, iz, ik] = max(R * agrid[ik] + y, c_floor)
-
-    # Backward loop
-    for age in range(A - 2, -1, -1):
+    # Backward loop        
+    for age in range(A - 2, -1, -1): # start, stop, step. Starts at A-2 since terminal period was handled above.
         working = age < aR
-        # Paper p.475: terminal-age assets must be non-negative
-        kprime_min = 0.0 if age == A - 2 else kprime_min_global
-
+        kprime_min = 0.0 if age == A - 2 else kprime_min_global 
+        # Paper p.475: The only additional restriction is that if an agent survives to the terminal age N, then asset holdings must be nonnegative, a'>= 0. 
+        # Of course, the credit limit can be set sufficiently low so that the only binding requirement is that in the last period of life the agent holds no debt.
+        # Agents at 97 can save but cannot borrow since they die next period (assets cannot be negative)
+        
         # Expected marginal utility tomorrow
+        # For each (earnings state, asset level) tomorrow, compute the marginal utility of consumption.
         mu_next = np.empty((nz, nk))
         for iz in range(nz):
             for ik in range(nk):
                 mu_next[iz, ik] = _u1(max(c[age+1, iz, ik], c_floor), sigma)
-
+        # The agent doesn't know which earnings state they'll have tomorrow. 
+        # So they compute the expected marginal utility by weighting over all possible tomorrow states. 
+        # If today you're in state iz, the probability of being in state jz tomorrow is Pz[iz, jz]. 
+        # This triple loop computes: for each current state iz and each asset level ik, the expectation Σⱼ P(iz,jz) · u'(c_{tomorrow}(jz, ik)).
         Emu = np.zeros((nz, nk))
         for iz in range(nz):
             for jz in range(nz):
@@ -113,6 +128,8 @@ def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
                  if working else b + T)
 
             # EGM: for each k' on grid, find implied k today
+            # Loop over every possible choice of k' on the grid. 
+            # Standard VFI would try each k and evaluate the value function (expensive optimization). 
             x  = np.empty(nk)
             cc = np.empty(nk)
             for ikp in range(nk):
@@ -120,8 +137,8 @@ def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
                 if kpr < kprime_min:
                     x[ikp], cc[ikp] = 1e18, c_floor
                     continue
-                c_now = _inv_u1(beta * s_surv[age] * R * Emu[iz, ikp], sigma)
-                c_now = max(c_now, c_floor)
+                c_now = _inv_u1(beta * s_surv[age] * R * Emu[iz, ikp], sigma) # Inverter Euler Equation -> optimal consumption given the chosen k'.
+                c_now = max(c_now, c_floor) # Boundaries for consumption
                 x[ikp]  = (c_now + kpr - y) / R
                 cc[ikp] = c_now
 
@@ -146,5 +163,6 @@ def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
                         kpr = max(R * k0 + y - c_now, kprime_min)
                     c[age, iz, ik] = c_now
                     kp[age, iz, ik] = kpr
-
     return c, kp
+
+

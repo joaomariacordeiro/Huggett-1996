@@ -3,7 +3,7 @@ calibration.py — Calibration data and parameters for Huggett (1996).
  
 Contains:
     - Death probabilities from Jordan (1975), ages 20-98
-    - Age-earnings profile from paper Figure 1 (loaded from CSV)
+    - Age-earnings profile from Huggett via Corbae (embedded).
     - build_params(): constructs the full parameter dictionary (Table 2, p.478)
 """
  

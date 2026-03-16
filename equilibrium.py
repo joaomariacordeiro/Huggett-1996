@@ -15,9 +15,9 @@ from household import _normalize_A, _prices, _ss_benefit, asset_grid, egm_backwa
 from simulation import simulate_panel
 from statistics import wealth_moments, age_profiles
 
+#Find stationary general equilibrium by iterating on (K, T)
 
 def solve_ge(params, verbose=True, track_convergence=False):
-    """Find stationary general equilibrium by iterating on (K, T)."""
     p = params
     A_len = p["age_last"] - p["age1"] + 1
     aR    = p["age_ret"]  - p["age1"] + 1
@@ -139,8 +139,8 @@ def print_diagnostics(out, params):
     print(f"{'─'*60}")
 
 
+#Run all 8 specifications for a given sigma (1.5 for Table 3, 3.0 for Table 4).
 def replicate_table(base_params, sigma_val, verbose=True):
-    """Run all 8 specifications for a given sigma (1.5 for Table 3, 3.0 for Table 4)."""
     specs = [(lt, s2, cl)
              for lt in ("certain", "uncertain")
              for s2 in (0.0, 0.045)
