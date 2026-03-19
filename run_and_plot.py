@@ -15,10 +15,14 @@ This is the main script. It imports from the module files:
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-
 from calibration import build_params
 from equilibrium import solve_ge, print_diagnostics, replicate_table
 from statistics import weighted_gini
+from datetime import datetime
+
+# Chronomtre
+start_time = datetime.now()
+
 
 # Plot settings
 # Follow a style that matches nicely the LaTeX fonts etc.
@@ -34,16 +38,32 @@ save_dir = Path("figures")
 save_dir.mkdir(exist_ok=True)
 
 
+def weighted_quantile(x, w, q):
+    x = np.asarray(x).ravel()
+    w = np.asarray(w).ravel()
+    idx = np.argsort(x)
+    x, w = x[idx], w[idx]
+    w = w / w.sum()
+    cw = np.cumsum(w)
+    return float(np.interp(q, np.r_[0.0, cw], np.r_[x[0], x]))
+
+
+def pooled_age_slice(k_hist, age_mass, lo, hi):
+    n_agents = k_hist.shape[0]
+    x = k_hist[:, lo:hi].T.ravel()
+    w = np.repeat(age_mass[lo:hi], n_agents) / n_agents
+    w = w / w.sum()
+    return x, w
+
+
 # ══════════════════════════════════════════════════════════════
 # 1. Replicate Tables 3 and 4
 # ══════════════════════════════════════════════════════════════
-
 # Note: this step take quite some time to run given the multiple simulations for each model economy.
 # To run it, please uncomment out the two lines below
 base = build_params()
-#replicate_table(base, 1.5)   # Table 3
-#replicate_table(base, 3.0)   # Table 4
-
+replicate_table(base, 1.5)   # Table 3
+replicate_table(base, 3.0)   # Table 4
 
 # ══════════════════════════════════════════════════════════════
 # 2. Run the 4 uncertain-lifetimes specs (for Figures 3, 5)
@@ -111,34 +131,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 5. Survival Probabilities
-# ══════════════════════════════════════════════════════════════
-
-death_probs = base["death_probs"]
-s_surv = 1 - death_probs
-uncond = np.cumprod(np.insert(s_surv[:-1], 0, 1.0))
-surv_ages = np.arange(age1, age1 + len(death_probs))
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.5))
-ax1.plot(surv_ages, s_surv, color='#1a1a2e', lw=2)
-ax1.set_xlabel('Age')
-ax1.set_ylabel('$s_t$')
-ax1.set_title('Conditional Survival')
-ax1.set_ylim(0.6, 1.01)
-
-ax2.plot(surv_ages, uncond, color='#d62728', lw=2)
-ax2.set_xlabel('Age')
-ax2.set_ylabel('$S_t$')
-ax2.set_title('Unconditional Survival')
-ax2.set_ylim(0, 1.05)
-
-plt.tight_layout()
-plt.savefig(save_dir / 'fig_survival.pdf')
-plt.show()
-
-
-# ══════════════════════════════════════════════════════════════
-# 6. Mean Wealth by Age (4 specs, every age)
+# 5. Mean Wealth by Age (4 specs, every age)
 # ══════════════════════════════════════════════════════════════
 
 styles = {
@@ -165,7 +158,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 7. Wealth Profiles (quantiles, 10-year age bins)
+# 6. Wealth Profiles (quantiles, 10-year age bins)
 #    Paper shows: Mean, 50% quantile, 25% quantile, 10% quantile
 #    For the baseline spec (uncertain, shocks, a'>=-w)
 # ══════════════════════════════════════════════════════════════
@@ -181,12 +174,12 @@ for center in bin_centers_f3:
     hi = min(center + 5 - age1, A_len)
     if lo >= hi:
         continue
-    pooled = k_hist[:, lo:hi].ravel()     # pool all agents in this age range
+    pooled, pooled_w = pooled_age_slice(k_hist, results['Shocks, a>=-w']['age_mass'], lo, hi)
     ages_f3.append(center)
-    means_f3.append(np.mean(pooled))
-    q50_f3.append(np.quantile(pooled, 0.50))
-    q25_f3.append(np.quantile(pooled, 0.25))
-    q10_f3.append(np.quantile(pooled, 0.10))
+    means_f3.append(float(np.sum(pooled * pooled_w)))
+    q50_f3.append(weighted_quantile(pooled, pooled_w, 0.50))
+    q25_f3.append(weighted_quantile(pooled, pooled_w, 0.25))
+    q10_f3.append(weighted_quantile(pooled, pooled_w, 0.10))
 
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.plot(ages_f3, means_f3, '-^', color='#1a1a2e', ms=4, mfc='none', mew=1.5, lw=2, markevery=1, label='Mean')
@@ -206,7 +199,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 8. Gini within age groups — Certain Lifetimes
+# 7. Gini within age groups — Certain Lifetimes
 #    Paper: 5-year bins from age 30 to 75, shocks only
 # ══════════════════════════════════════════════════════════════
 
@@ -219,11 +212,11 @@ for center in bin_centers_f4:
     hi = min(center + 3 - age1, A_len)
     if lo >= hi:
         continue
-    pool_a0 = cert_a0['k_hist'][:, lo:hi].ravel()
-    pool_aw = cert_aw['k_hist'][:, lo:hi].ravel()
+    pool_a0, w_a0 = pooled_age_slice(cert_a0['k_hist'], cert_a0['age_mass'], lo, hi)
+    pool_aw, w_aw = pooled_age_slice(cert_aw['k_hist'], cert_aw['age_mass'], lo, hi)
     ages_f4.append(center)
-    gini_cert_a0.append(weighted_gini(pool_a0, np.ones(len(pool_a0)) / len(pool_a0)))
-    gini_cert_aw.append(weighted_gini(pool_aw, np.ones(len(pool_aw)) / len(pool_aw)))
+    gini_cert_a0.append(weighted_gini(pool_a0, w_a0))
+    gini_cert_aw.append(weighted_gini(pool_aw, w_aw))
 
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.plot(ages_f4, gini_cert_a0, color='#2ca02c', ls='-.', marker='^', ms=4, markevery=1, lw=1.8,
@@ -243,7 +236,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 9. Gini within age groups — Uncertain Lifetimes
+# 8. Gini within age groups — Uncertain Lifetimes
 #    Paper: 5-year bins from age 30 to 90, shocks only
 # ══════════════════════════════════════════════════════════════
 
@@ -259,11 +252,11 @@ for center in bin_centers_f5:
     hi = min(center + 3 - age1, A_len)
     if lo >= hi:
         continue
-    pool_a0 = k_hist_ua0[:, lo:hi].ravel()
-    pool_aw = k_hist_uaw[:, lo:hi].ravel()
+    pool_a0, w_a0 = pooled_age_slice(k_hist_ua0, results['Shocks, a>=0']['age_mass'], lo, hi)
+    pool_aw, w_aw = pooled_age_slice(k_hist_uaw, results['Shocks, a>=-w']['age_mass'], lo, hi)
     ages_f5.append(center)
-    gini_uncert_a0.append(weighted_gini(pool_a0, np.ones(len(pool_a0)) / len(pool_a0)))
-    gini_uncert_aw.append(weighted_gini(pool_aw, np.ones(len(pool_aw)) / len(pool_aw)))
+    gini_uncert_a0.append(weighted_gini(pool_a0, w_a0))
+    gini_uncert_aw.append(weighted_gini(pool_aw, w_aw))
 
 fig, ax = plt.subplots(figsize=(7, 5.5))
 ax.plot(ages_f5, gini_uncert_a0, color='#2ca02c', ls='-.', marker='^', ms=4, markevery=1, lw=1.8, label='Shocks, $\\bar{a} = 0$')
@@ -281,7 +274,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 10. Lorenz Curves
+# 9. Lorenz Curves
 # ══════════════════════════════════════════════════════════════
 
 fig, ax = plt.subplots(figsize=(8, 6))
@@ -312,7 +305,7 @@ plt.savefig(save_dir / 'fig_lorenz.pdf')
 plt.show()
 
 # ══════════════════════════════════════════════════════════════
-# 11. Wealth Percentiles (for baseline)
+# 10. Wealth Percentiles (for baseline)
 # ══════════════════════════════════════════════════════════════
 
 
@@ -337,7 +330,7 @@ plt.show()
 
 
 # ══════════════════════════════════════════════════════════════
-# 12. Print summary
+# 11. Print summary
 # ══════════════════════════════════════════════════════════════
 
 print("\n" + "="*75)
@@ -361,3 +354,7 @@ print(f"  Top 20%: {bl['top20']*100:.1f}%  (paper: 75.5%)")
 print(f"  Frac<=0: {bl['frac_le0']*100:.1f}%  (paper: 24.0%)")
 
 print(f"\nAll figures saved to: {save_dir.resolve()}/")
+
+# Stop chronometer & print running time
+end_time = datetime.now()
+print('Duration: {}'.format(end_time - start_time))

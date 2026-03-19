@@ -80,7 +80,7 @@ def asset_grid(kmin, kmax, nk):
 # ── EGM Backward Induction ──
 
 @njit
-def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
+def egm_backward(agrid, zgrid, Pz, age_eff, s_h, aR,
                   beta, sigma, R, w, T, b, theta, nu,
                   kprime_min_global, c_floor=1e-10):
 # Budget constraint (paper eq.1): c + a' = R·a + y
@@ -137,7 +137,7 @@ def egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
                 if kpr < kprime_min:
                     x[ikp], cc[ikp] = 1e18, c_floor
                     continue
-                c_now = _inv_u1(beta * s_surv[age] * R * Emu[iz, ikp], sigma) # Inverter Euler Equation -> optimal consumption given the chosen k'.
+                c_now = _inv_u1(beta * s_h[age + 1] * R * Emu[iz, ikp], sigma) # Invert Euler equation using Huggett's s_{t+1}.
                 c_now = max(c_now, c_floor) # Boundaries for consumption
                 x[ikp]  = (c_now + kpr - y) / R
                 cc[ikp] = c_now

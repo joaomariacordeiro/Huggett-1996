@@ -10,7 +10,7 @@ Contains:
 import numpy as np
 import pandas as pd
 
-from earnings import earnings_markov, stationary_dist, initial_z_dist
+from earnings import earnings_markov, initial_z_dist
 from household import _normalize_A, _prices, _ss_benefit, asset_grid, egm_backward
 from simulation import simulate_panel
 from statistics import wealth_moments, age_profiles
@@ -29,23 +29,29 @@ def solve_ge(params, verbose=True, track_convergence=False):
     else:
         d = p["death_probs"][:A_len].copy(); d[-1] = max(d[-1], 1.0)
         beta_use = p["beta"]
-    s_surv = 1.0 - d
+    # Huggett notation: s_h[t] = Pr(survive to age t+1 | alive at age t) in 0-based Python indexing
+    # so s_h[1] is survival to model age 2, conditional on reaching age 1.
+    s_h = np.ones(A_len)
+    s_h[1:] = 1.0 - d[:-1]
 
     # Stationary age mass (paper p.474, footnote 4)
     age_mass = np.ones(A_len)
     for i in range(1, A_len):
-        age_mass[i] = s_surv[i-1] * age_mass[i-1] / (1 + p["pop_g"])
+        age_mass[i] = s_h[i] * age_mass[i-1] / (1 + p["pop_g"])
     age_mass /= age_mass.sum()
     retire_mass = age_mass[aR:].sum()
 
     # Earnings chain + initial distribution
     zgrid, Pz = earnings_markov(p["gamma"], p["sigma_eps"], p["sigma1"])
-    pi_z = stationary_dist(Pz)
     pi0 = initial_z_dist(zgrid, p["sigma1"]) if p["sigma_eps"] > 0 else np.array([1.0])
 
-    # Normalise L = 1
-    Ez = float(np.sum(pi_z * np.exp(zgrid)))
-    L_raw = float(np.sum(age_mass[:aR] * age_eff[:aR] * Ez))
+    # Normalise L = 1 using the lifecycle earnings distribution
+    z_mass_by_age = np.zeros((A_len, len(zgrid)))
+    z_mass_by_age[0] = pi0
+    for age in range(1, A_len):
+        z_mass_by_age[age] = z_mass_by_age[age - 1] @ Pz
+    Ez_by_age = z_mass_by_age @ np.exp(zgrid)
+    L_raw = float(np.sum(age_mass[:aR] * age_eff[:aR] * Ez_by_age[:aR]))
     age_eff /= L_raw
 
     TFP = _normalize_A(p["alpha"])
@@ -63,7 +69,7 @@ def solve_ge(params, verbose=True, track_convergence=False):
         agrid = asset_grid(min(kprime_min, 0), p["kmax"], p["nk"])
 
         # Step 3: Solve household problem (EGM backward)
-        _, kp_pol = egm_backward(agrid, zgrid, Pz, age_eff, s_surv, aR,
+        _, kp_pol = egm_backward(agrid, zgrid, Pz, age_eff, s_h, aR,
                                   beta_use, p["sigma"], R, w, T, b,
                                   p["theta"], p["nu"], kprime_min, p["c_floor"])
 
@@ -71,10 +77,7 @@ def solve_ge(params, verbose=True, track_convergence=False):
         k_hist, z_hist = simulate_panel(agrid, zgrid, Pz, pi0, age_eff, aR,
                                          kp_pol, p["Nsim"], p["seed"])
 
-        # Step 5: Capital market clearing
-        K_model = max(float(np.mean(k_hist, 0) @ age_mass) / (1 + p["pop_g"]), 1e-12)
-
-        # Reconstruct k' for bequest calculation
+        # Step 5: Reconstruct k' for aggregation
         kp_hist = np.zeros_like(k_hist)
         for age in range(A_len):
             k_cl = np.clip(k_hist[:, age], agrid[0], agrid[-1])
@@ -83,8 +86,11 @@ def solve_ge(params, verbose=True, track_convergence=False):
             kp_hist[:, age] = (1 - wgt) * kp_pol[age, z_hist[:, age], j] + \
                                wgt * kp_pol[age, z_hist[:, age], j + 1]
 
-        # Accidental bequests (paper eq.7, p.477)
-        beq = float(np.mean(R * kp_hist, 0) @ (age_mass * (1 - s_surv)))
+        # Step 6: Capital market clearing and accidental bequests (paper eq.7, p.477)
+        K_model = max(float(np.mean(kp_hist, 0) @ age_mass) / (1 + p["pop_g"]), 1e-12)
+        death_next = np.ones(A_len)
+        death_next[:-1] = 1.0 - s_h[1:]
+        beq = float(np.mean(R * kp_hist, 0) @ (age_mass * death_next))
         T_model = beq / (1 + p["pop_g"])
 
         # Step 6: Check convergence
@@ -107,6 +113,9 @@ def solve_ge(params, verbose=True, track_convergence=False):
     else:
         if verbose: print(f"  Warning: max iterations ({p['maxit']}) reached")
 
+    Y, R_pre, w = _prices(K_model, 1.0, TFP, p["alpha"], p["delta"])
+    R = 1 + (R_pre - 1) * (1 - p["nu"])
+    b = _ss_benefit(p["theta"], w, 1.0, retire_mass) if p["theta"] > 0 else 0.0
     moms = wealth_moments(k_hist, age_mass)
     prof = age_profiles(k_hist)
 
@@ -169,3 +178,6 @@ def replicate_table(base_params, sigma_val, verbose=True):
     print(f"\n{'='*90}\n  TABLE {'3' if sigma_val == 1.5 else '4'}: sigma = {sigma_val}\n{'='*90}")
     print(df.to_string(index=False))
     return df
+
+
+

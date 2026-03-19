@@ -12,6 +12,8 @@ The replication was produced as part of the course *Quantitative Macroeconomics 
 **Date:** March 2026  
 **Contact:** joaomariacordeiro@gmail.com
 
+(any errors are my own)
+
 ---
 
 ## Data Availability Statement
@@ -20,7 +22,7 @@ The model is calibrated using data from the following sources, as specified in t
 
 | Data | Source | Availability |
 |------|--------|-------------|
-| Survival probabilities | Jordan (1975), Faber (1982) | Embedded in `calibration.py` |
+| Survival probabilities | Jordan (1975) | Embedded in `calibration.py` |
 | Age-earnings profile | Huggett via Corbae; see Kirkby (2022) | Embedded in `calibration.py` |
 | Earnings process parameters | Abowd and Card (1989), *Econometrica* 57(2) | Published |
 | Population growth rate | US Census | Published |
@@ -41,7 +43,7 @@ No external data files need to be downloaded. All calibration data are embedded 
 | Matplotlib | 3.7+ | Yes |
 | Pandas | 2.0+ | Yes |
 
-**Critical note on Numba and NumPy compatibility.** The `@njit` decorator, which compiles the EGM solver and panel simulation to machine code, requires careful version matching between Numba and NumPy. Numba 0.60.0 requires NumPy >= 1.22 and < 2.1. Newer versions of NumPy (>= 2.0) are incompatible with Numba 0.60.0 and will produce import errors. The tested and recommended combination is:
+**Critical note on Numba and NumPy compatibility.** The `@njit` decorator, which compiles the EGM solver and panel simulation to machine code, requires careful version matching between Numba and NumPy. Numba 0.60.0 requires NumPy >= 1.22 and < 2.1. Newer versions of NumPy (>= 2.0) are incompatible with Numba 0.60.0 and will produce import errors. Additionally, there are reported miscompilation bugs with Numba 0.61.x and NumPy 2.2.x on Windows (see [numba/numba#10126](https://github.com/numba/numba/issues/10126)). The tested and recommended combination is:
 
 ```
 numba==0.60.0
@@ -58,7 +60,7 @@ Or with conda:
 conda install numba=0.60.0 numpy=1.26.4
 ```
 
-The code includes a fallback that allows it to run without Numba, but performance will be approximately 50–100x slower (hours instead of minutes).
+The code includes a fallback that allows it to run without Numba, but performance will be approximately 50–100x slower.
 
 ### Hardware
 
@@ -68,22 +70,24 @@ The code was developed and tested on the following system:
 |-----------|--------------|
 | Operating system | Windows 11 |
 | Processor | Intel(R) Core(TM) 7 240H (2.50 GHz) |
-| RAM | 32GB |
+| RAM | 32.0 GB |
 | IDE | Spyder 6 (Anaconda) |
+
+The code is platform-independent and should run on any system with the required software. No GPU is required.
 
 ### Expected Runtime (with Numba)
 
+Total runtime for the full replication (Tables 3–4, all figures, summary): **approximately 2 hours 30 minutes**.
+
 | Task | Approximate time |
 |------|-----------------|
-| First run (Numba compilation) | ~1 minute (one-off) |
-| Single GE solve (with shocks, 500K agents) | ~2.5 minutes |
-| Single GE solve (no shocks) | ~10 seconds |
-| Table 3 (8 specifications, σ = 1.5) | ~10 minutes |
-| Table 4 (8 specifications, σ = 3.0) | ~10 minutes |
-| Figures (6 specifications) | ~8 minutes |
-| **Full replication** | **~35 minutes** |
+| First run (Numba JIT compilation) | ~1 minute (one-off) |
+| Table 3 (8 specifications, σ = 1.5) | ~50 minutes |
+| Table 4 (8 specifications, σ = 3.0) | ~50 minutes |
+| Figures (4 uncertain + 2 certain specs) | ~40 minutes |
+| **Full replication (`run_and_plot.py`)** | **~2 h 30 min** |
 
-Without Numba, the full replication may take several hours.
+Without Numba, the full replication may take 10+ hours.
 
 ---
 
@@ -158,10 +162,13 @@ This produces, in order:
 1. **Table 3** (σ = 1.5, 8 specifications) — printed to console
 2. **Table 4** (σ = 3.0, 8 specifications) — printed to console
 3. **6 GE solves** (4 uncertain + 2 certain lifetimes) for figures
-4. **All figures** — saved to `figures/` as both PDF and PNG
+4. **All figures** — saved to `figures/` as PDF
 5. **Summary table** — printed to console
+6. **Total runtime** — printed to console
 
 ### Tables only
+
+To replicate only the tables without generating figures, comment out sections 2–10 in `run_and_plot.py` and run:
 
 ```python
 from calibration import build_params
@@ -187,20 +194,32 @@ print_diagnostics(out, base)
 
 ## Output
 
+### Key results
+
+Baseline specification (σ = 1.5, uncertain lifetimes, shocks, a' ≥ −w):
+
+| Moment | Replication | Paper | US Data |
+|--------|------------|-------|---------|
+| K/Y | 3.323 | 3.2 | 3.0 |
+| Gini | 0.746 | 0.76 | 0.72 |
+| Top 1% | 11.8% | 11.8% | 28.0% |
+| Top 5% | 35.4% | 35.6% | 53.5% |
+| Top 20% | 74.6% | 75.5% | 79.5% |
+| Frac ≤ 0 | 28.9% | 24.0% | 15–20% |
+
 ### Figures
 
-All figures are saved to `figures/` in PDF format.
+All figures are saved to `figures/` in PDF format at 300 DPI.
 
 | File | Description | Paper reference |
 |------|-------------|----------------|
-| `fig_earnings` | Age-earnings profile (Corbae/Huggett data) | 
-| `fig_survival` | Conditional and unconditional survival | 
-| `fig_mean_wealth` | Mean wealth by age, 4 uncertain specs | 
-| `fig_wealth_profiles` | Quantiles (Mean, p50, p25, p10) in 10-year bins | 
-| `fig_gini_certain` | Gini within 5-year age groups, certain lifetimes | 
-| `fig_gini_uncertain` | Gini within 5-year age groups, uncertain lifetimes | 
-| `fig_lorenz` | Lorenz curves, 4 uncertain specs | 
-| `fig_quantiles` | Wealth percentile chart (baseline) | 
+| `fig_earnings.pdf` | Age-earnings profile (Corbae/Huggett data) | Figure 1 |
+| `fig_mean_wealth.pdf` | Mean wealth by age, 4 uncertain specs | — |
+| `fig_wealth_profiles.pdf` | Quantiles (Mean, p50, p25, p10) in 10-year bins | Figure 3 |
+| `fig_gini_certain.pdf` | Gini within 5-year age groups, certain lifetimes | Figure 4 |
+| `fig_gini_uncertain.pdf` | Gini within 5-year age groups, uncertain lifetimes | Figure 5 |
+| `fig_lorenz.pdf` | Lorenz curves, 4 uncertain specs | — |
+| `fig_quantiles.pdf` | Wealth percentile fan chart (baseline) | — |
 
 ### Tables
 
@@ -222,16 +241,16 @@ df4.to_csv("table4_results.csv", index=False)
 |-----------|-----------------|----------------|
 | Household problem | EGM (Carroll, 2006) | Value function iteration |
 | Wealth distribution | Monte Carlo (500K agents) | Distributional iteration |
-| Asset grid | Uniform, 301 pts, Δa = 0.40 | Varies from 41 up to 301 points, Δa = 0.40 |
-| Earnings discretisation | 18-state Tauchen variant (p. 481) | 18-state Tauchen variant (p. 481) |
+| Asset grid | Uniform, 301 pts | Uniform; 41–301 pts depending on economy |
+| Earnings discretisation | 18-state Tauchen variant | 18-state discretisation |
 | Age-earnings profile | Huggett via Corbae/Kirkby (2022) | SSA Bulletin / Handbook of LS |
-| GE updating | Dampened (λ_K = 0.25, λ_T = 0.35) | Not specified |
+| GE updating | Damped fixed-point on K and T | Not specified |
 
 ### Known discrepancies
 
-1. **Certain-lifetimes K/Y.** The certain-lifetimes specifications produce K/Y ≈ 4.3–4.9, above the paper's 2.3–3.2. This arises because the Corbae earnings profile drops to exactly zero at age 73, creating 25 years of zero income for agents who survive to 98 with certainty. This extreme savings motive is absent in the uncertain-lifetimes case, where most agents die before the zero-earnings region. The discount factor β = 0.994 was likely calibrated with the original (smoother) earnings profile and may require adjustment. The uncertain-lifetimes specifications, which are the paper's primary focus, are unaffected.
+1. **Certain-lifetimes K/Y.** The certain-lifetimes specifications produce K/Y ≈ 4.3–5.1, above the paper's 2.0–3.2. This arises because the Corbae earnings profile drops to exactly zero at age 73, creating 25 years of zero income for agents who survive to 98 with certainty. Under uncertain lifetimes, most agents die before this region, so the effect is muted. The discount factor β = 0.994 was likely calibrated with the original (smoother) earnings profile and may require adjustment.
 
-2. **Fraction ≤ 0.** The zero-wealth fraction (27.6% vs 24.0% for the baseline) reflects remaining differences in the age-earnings profile shape, particularly at young ages.
+2. **Fraction ≤ 0.** The zero-wealth fraction (28.9% vs 24.0% for the baseline) reflects remaining differences in the age-earnings profile and Monte Carlo sampling noise.
 
 3. **Monte Carlo noise.** Top wealth shares exhibit minor variability (±0.3 pp) across random seeds. The seed is fixed at 123 for reproducibility.
 
@@ -253,7 +272,6 @@ df4.to_csv("table4_results.csv", index=False)
 
 - Abowd, J.M. and D. Card (1989). "On the Covariance Structure of Earnings and Hours Changes." *Econometrica*, 57(2): 411–445.
 - Carroll, C.D. (2006). "The Method of Endogenous Gridpoints for Solving Dynamic Stochastic Optimization Problems." *Economics Letters*, 91(3): 312–320.
-- Faber, J.F. (1982). *Life Tables for the United States: 1900–2050*. SSA Actuarial Study No. 87.
 - Huggett, M. (1993). "The Risk-Free Rate in Heterogeneous-Agent Incomplete-Insurance Economies." *JEDC*, 17(5–6): 953–969.
 - Huggett, M. (1996). "Wealth Distribution in Life-Cycle Economies." *Journal of Monetary Economics*, 38(3): 469–494.
 - Hurd, M.D. (1989). "Mortality Risk and Bequests." *Econometrica*, 57(4): 779–813.

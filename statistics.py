@@ -61,5 +61,8 @@ def age_profiles(k_hist):
     qs = (0.10, 0.25, 0.50, 0.75, 0.90)
     quant = {q: np.quantile(k_hist, q, axis=0) for q in qs}
     gini = np.array([weighted_gini(k_hist[:, a], np.ones(N) / N) for a in range(A)])
-    cv = np.where(np.abs(mean) > 1e-12, std / np.abs(mean), 0.0)
+    cv = np.zeros_like(mean)
+    mask = np.abs(mean) > 1e-12
+    cv[mask] = std[mask] / np.abs(mean[mask])
     return dict(mean=mean, std=std, quant=quant, gini=gini, cv=cv)
+
