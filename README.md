@@ -128,7 +128,7 @@ replication/
 | File | Description | Key functions |
 |------|-------------|---------------|
 | `calibration.py` | Parameters and embedded data (Table 2) | `build_params()` |
-| `earnings.py` | Tauchen discretisation of AR(1) earnings (p. 481) | `earnings_markov()`, `initial_z_dist()` |
+| `earnings.py` | Tauchen discretisation of AR(1) earnings | `earnings_markov()`, `initial_z_dist()` |
 | `household.py` | Preferences, technology, EGM solver | `egm_backward()`, `asset_grid()` |
 | `simulation.py` | Monte Carlo panel simulation (500K agents) | `simulate_panel()` |
 | `statistics.py` | Distributional statistics (Gini, top shares) | `wealth_moments()`, `age_profiles()` |
@@ -240,10 +240,10 @@ df4.to_csv("table4_results.csv", index=False)
 | Component | This replication | Huggett (1996) |
 |-----------|-----------------|----------------|
 | Household problem | EGM (Carroll, 2006) | Value function iteration |
-| Wealth distribution | Monte Carlo (500K agents) | Distributional iteration |
 | Asset grid | Uniform, 301 pts | Uniform; 41–301 pts depending on economy |
 | Earnings discretisation | 18-state Tauchen variant | 18-state discretisation |
-| Age-earnings profile | Huggett via Corbae/Kirkby (2022) | SSA Bulletin / Handbook of LS |
+| Wealth distribution | Monte Carlo (500K agents) | Distributional iteration |
+| Earnings profile | Kirkby (2022) | SSA Bulletin / Handbook of LS |
 | GE updating | Damped fixed-point on K and T | Not specified |
 
 ### Known discrepancies
