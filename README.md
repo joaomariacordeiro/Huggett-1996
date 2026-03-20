@@ -44,7 +44,7 @@ No external data files need to be downloaded. All calibration data are embedded 
 |Matplotlib|3.7+|Yes|
 |Pandas|2.0+|Yes|
 
-**Critical note on Numba and NumPy compatibility.** The `@njit` decorator, which compiles the EGM solver and panel simulation to machine code, requires careful version matching between Numba and NumPy. Numba 0.60.0 requires NumPy >= 1.22 and < 2.1. Newer versions of NumPy (>= 2.0) are incompatible with Numba 0.60.0 and will produce import errors. Additionally, there are reported miscompilation bugs with Numba 0.61.x and NumPy 2.2.x on Windows (see [numba/numba#10126](https://github.com/numba/numba/issues/10126)). The tested and recommended combination is:
+**Critical note on Numba and NumPy compatibility.** The `@njit` decorator, which compiles the EGM solver and panel simulation to machine code, requires careful version matching between Numba and NumPy. Numba 0.60.0 requires NumPy >= 1.22 and < 2.1. Newer versions of NumPy (>= 2.0) are incompatible with Numba 0.60.0 and will produce import errors. The tested and recommended combination is:
 
 ```
 numba==0.60.0
