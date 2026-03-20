@@ -1,4 +1,4 @@
-# Replication: Huggett (1996) - Wealth Distribution in Life-Cycle Economies
+# Replication: Huggett (1996)
 
 ## Overview
 
@@ -13,14 +13,10 @@ The replication was produced as part of the course *Quantitative Macroeconomics 
 **Contact:** joaomariacordeiro@gmail.com
 
 
-
 ## Disclaimer
 
 Any errors are my own.
 
-
-
-\---
 
 ## Data Availability Statement
 
