@@ -6,7 +6,7 @@ This repository contains the replication code for:
 
 > Huggett, Mark. 1996. "Wealth Distribution in Life-Cycle Economies." *Journal of Monetary Economics*, 38(3): 469–494.
 
-The replication was produced as part of the course *Quantitative Macroeconomics and Numerical Methods* at Goethe University Frankfurt (Winter Term 2025/26), taught by Professor Johannes Goensch.
+The replication was produced as part of the course *Quantitative Macroeconomics and Numerical Methods* at Goethe University Frankfurt (Winter Term 2025/26), taught by Prof. Dr. Johannes Gönsch.
 
 **Author:** João Maria Cordeiro  
 **Date:** March 2026  
@@ -18,7 +18,7 @@ The replication was produced as part of the course *Quantitative Macroeconomics 
 Any errors are my own.
 
 
-## Data Availability Statement
+## Data Availability
 
 The model is calibrated using data from the following sources, as specified in the original paper (Table 2, p. 478):
 
@@ -153,7 +153,7 @@ The four core modules (`earnings.py`, `household.py`, `simulation.py`, `statisti
 
 \---
 
-## Reproducing Results
+## Results
 
 ### Full replication
 
