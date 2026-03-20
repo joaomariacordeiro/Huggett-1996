@@ -1,6 +1,4 @@
-# Replication Package: Huggett (1996)
-
-Wealth Distribution in Life-Cycle Economies
+# Replication: Huggett (1996) - Wealth Distribution in Life-Cycle Economies
 
 ## Overview
 
