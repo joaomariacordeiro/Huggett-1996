@@ -130,7 +130,7 @@ def solve_ge(params, verbose=True, track_convergence=False):
 
 
 def print_diagnostics(out, params):
-    """Print a compact summary of equilibrium quantities."""
+    """Print a compact summary of equilibrium quantities"""
     p, o = params, out
     L, nu, theta = 1.0, p["nu"], p["theta"]
     r, w, K, Y = o["r_pre"], o["w"], o["K"], o["Y"]

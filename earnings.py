@@ -34,7 +34,7 @@ def stationary_dist(P, tol=1e-14, maxit=200_000):
 # 17 equally-spaced states on [-4σ₁, 4σ₁] plus one extreme earnings shock at 6σ₁.
  
 
-''' Tauchen's Method '''
+""" Tauchen's Method """
 
 def earnings_markov(gamma, sigma_eps, sigma1, n_states=18, m=4.0, extreme=6.0):
     if sigma_eps <= 0.0:

@@ -4,7 +4,23 @@ simulation.py — Monte Carlo panel simulation for Huggett (1996).
 Huggett (1996) uses distributional iteration (Huggett, 1993) to compute the stationary wealth distribution. 
 This replication uses Monte Carlo simulation with 500,000 agents, which is simpler to implement but
 introduces sampling noise.
+
+Note:
+@njit requires careful version matching between Numba and NumPy. 
+Numba 0.60.0 requires NumPy >= 1.22 and < 2.1. 
+Newer versions of NumPy (>= 2.0) are incompatible with Numba 0.60.0 and will produce import errors. 
+
+To install these specific versions, please run:
+
+pip install numba==0.60.0 numpy==1.26.4
+
+Or with conda:
+
+conda install numba=0.60.0 numpy=1.26.4
+
+The code includes a fallback that allows it to run without Numba, but performance will be approximately 50–100x slower.
 """
+
 
 import numpy as np
 
@@ -17,8 +33,7 @@ except ImportError:
         def wrapper(fn): return fn
         return wrapper
 
-'''
-
+"""
 Proceadure: 
     1) Simulate N agents through their entire life cycle.
 
@@ -26,7 +41,7 @@ Proceadure:
     At each age, savings are interpolated from the policy function, and next-period earnings are drawn via inverse CDF method.
 
     3) Returns k_hist (N x A) and z_hist (N x A).
-'''
+"""
 
 @njit
 def simulate_panel(agrid, zgrid, Pz, pi0, age_eff, aR, kp_pol,

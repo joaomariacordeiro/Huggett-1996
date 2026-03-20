@@ -1,4 +1,3 @@
-
 """
 run_and_plot.py — Run Huggett (1996) replication and plot results.
 
@@ -9,7 +8,6 @@ This is the main script. It imports from the module files:
     simulation.py   — Monte Carlo panel simulation
     statistics.py   — Gini, top shares, age profiles
     equilibrium.py  — GE solver, diagnostics, table replication
-
 """
 
 import numpy as np
@@ -59,11 +57,12 @@ def pooled_age_slice(k_hist, age_mass, lo, hi):
 # ══════════════════════════════════════════════════════════════
 # 1. Replicate Tables 3 and 4
 # ══════════════════════════════════════════════════════════════
-# Note: this step take quite some time to run given the multiple simulations for each model economy.
+# Note: this step takes quite some time to run given the multiple simulations for each model economy.
 # To run it, please uncomment out the two lines below
+
 base = build_params()
-replicate_table(base, 1.5)   # Table 3
-replicate_table(base, 3.0)   # Table 4
+#replicate_table(base, 1.5)   # Table 3
+#replicate_table(base, 3.0)   # Table 4
 
 # ══════════════════════════════════════════════════════════════
 # 2. Run the 4 uncertain-lifetimes specs 
@@ -355,6 +354,9 @@ print(f"  Frac<=0: {bl['frac_le0']*100:.1f}%  (paper: 24.0%)")
 
 print(f"\nAll figures saved to: {save_dir.resolve()}/")
 
-# Stop chronometer & print running time
+# Stop time & print running time
 end_time = datetime.now()
 print('Duration: {}'.format(end_time - start_time))
+
+# Print location where figures where saved
+save_dir.resolve()

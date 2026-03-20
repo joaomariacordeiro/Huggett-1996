@@ -21,14 +21,12 @@ except ImportError:
         def wrapper(fn): return fn
         return wrapper
 
-''' 
-
+"""
 @njit tells Numba to compile that function to machine code the first time it's called, so every subsequent call runs at C-like speed instead of Python (slower).
 It matters here because _u1 and _inv_u1 are called millions of times — once for every combination of agent × age × earnings state × asset grid point inside the EGM loops. 
 Without @njit, each call goes through Python's interpreter, which is slow. 
 With it, the function becomes a raw machine instruction that the CPU executes directly.
-
-'''
+"""
 
 # ── Preferences ──
 

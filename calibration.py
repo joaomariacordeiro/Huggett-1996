@@ -10,6 +10,7 @@ Contains:
 import numpy as np
  
 # ── Death probabilities: Jordan (1975), ages 20-98 ──
+
 DEATH_PROBS = np.array([
     .00159,.00169,.00174,.00172,.00165,.00156,.00149,.00145,.00145,.00149,
     .00156,.00163,.00171,.00181,.00193,.00207,.00225,.00246,.00270,.00299,
@@ -22,9 +23,9 @@ DEATH_PROBS = np.array([
  
 # ── Age-earnings profile: exp(ybar_t) from Huggett via Corbae ──
 # Source: Dean Corbae homework handout (data obtained from Mark Huggett).
-# Used in Kirkby's VFI Toolkit replication. Values are exp(ybar_t), the
-# deterministic component of labour endowment e(z,t) = exp(z_t + ybar_t).
+# Used in Kirkby's VFI Toolkit replication. Values are exp(ybar_t), the deterministic component of labour endowment e(z,t) = exp(z_t + ybar_t).
 # Ages 20-98. Hump-shaped, peak ~0.80 at age 47, zero from age 73 onward.
+
 AGE_EARNINGS = np.array([
     0.0911, 0.1573, 0.2268, 0.2752, 0.3218, 0.3669, 0.4114, 0.4559, 0.4859, 0.5164,
     0.5474, 0.5786, 0.6097, 0.6311, 0.6517, 0.6711, 0.6893, 0.7060, 0.7213, 0.7355,
