@@ -4,7 +4,7 @@
 
 This repository contains the replication code for:
 
-> Huggett, Mark. 1996. "Wealth Distribution in Life-Cycle Economies." \*Journal of Monetary Economics\*, 38(3): 469–494.
+> Huggett, Mark. 1996. "Wealth Distribution in Life-Cycle Economies." *Journal of Monetary Economics*, 38(3): 469–494.
 
 The replication was produced as part of the course *Quantitative Macroeconomics and Numerical Methods* at Goethe University Frankfurt (Winter Term 2025/26), taught by Professor Johannes Goensch.
 
