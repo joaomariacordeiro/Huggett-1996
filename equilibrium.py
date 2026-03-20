@@ -11,11 +11,11 @@ import numpy as np
 import pandas as pd
 
 from earnings import earnings_markov, initial_z_dist
-from household import _normalize_A, _prices, _ss_benefit, asset_grid, egm_backward
+from household import _normalise_A, _prices, _ss_benefit, asset_grid, egm_backward
 from simulation import simulate_panel
 from statistics import wealth_moments, age_profiles
 
-#Find stationary general equilibrium by iterating on (K, T)
+# Find stationary general equilibrium by iterating on (K, T)
 
 def solve_ge(params, verbose=True, track_convergence=False):
     p = params
@@ -54,7 +54,7 @@ def solve_ge(params, verbose=True, track_convergence=False):
     L_raw = float(np.sum(age_mass[:aR] * age_eff[:aR] * Ez_by_age[:aR]))
     age_eff /= L_raw
 
-    TFP = _normalize_A(p["alpha"])
+    TFP = _normalise_A(p["alpha"])
     K, T = p["K0"], p["T0"]
     hist = {k: [] for k in ('K', 'T', 'errK', 'errT')} if track_convergence else None
 
@@ -148,7 +148,7 @@ def print_diagnostics(out, params):
     print(f"{'─'*60}")
 
 
-#Run all 8 specifications for a given sigma (1.5 for Table 3, 3.0 for Table 4).
+# Run all 8 specifications for a given sigma (1.5 for Table 3, 3.0 for Table 4).
 def replicate_table(base_params, sigma_val, verbose=True):
     specs = [(lt, s2, cl)
              for lt in ("certain", "uncertain")

@@ -66,7 +66,7 @@ replicate_table(base, 1.5)   # Table 3
 replicate_table(base, 3.0)   # Table 4
 
 # ══════════════════════════════════════════════════════════════
-# 2. Run the 4 uncertain-lifetimes specs (for Figures 3, 5)
+# 2. Run the 4 uncertain-lifetimes specs 
 # ══════════════════════════════════════════════════════════════
 
 specs = [
@@ -88,7 +88,7 @@ for s2, cl, label in specs:
 
 
 # ══════════════════════════════════════════════════════════════
-# 3. Run 2 certain-lifetimes shocks specs (for Figure 4)
+# 3. Run 2 certain-lifetimes shocks specs 
 # ══════════════════════════════════════════════════════════════
 
 print(f"\n{'='*60}\n  Certain, Shocks, a>=0\n{'='*60}")

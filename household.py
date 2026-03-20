@@ -44,9 +44,9 @@ def _inv_u1(mu, sigma):
 
 # ── Technology ──
 
-# Paper p.478: "The technology level A is normalized so that the wage equals 1.0 when the capital output ratio equals 3.0 and the labor input per capita is normalized at 1.0."
+# Paper p.478: "The technology level A is normalised so that the wage equals 1.0 when the capital output ratio equals 3.0 and the labor input per capita is normalised at 1.0."
 # Choose TFP (A) so that w = w_target = 1 when K/Y = 3 and L = 1
-def _normalize_A(alpha, KY=3.0, w_target=1.0):
+def _normalise_A(alpha, KY=3.0, w_target=1.0):
     Y = w_target / (1.0 - alpha)
     K = KY * Y 
     return Y / (K ** alpha)
