@@ -31,7 +31,6 @@ The model is calibrated using data from the following sources, as specified in t
 
 No external data files need to be downloaded. All calibration data are embedded directly in the source code.
 
-\---
 
 ## Computational Requirements
 
@@ -93,7 +92,6 @@ Total runtime for the full replication (Tables 3–4, all figures, summary): **a
 
 Without Numba, the full replication may take 10+ hours.
 
-\---
 
 ## Setup Instructions
 
@@ -125,7 +123,6 @@ replication/
 └── README.md
 ```
 
-\---
 
 ## Code Structure
 
@@ -151,7 +148,6 @@ statistics.py ───┘
 
 The four core modules (`earnings.py`, `household.py`, `simulation.py`, `statistics.py`) are standalone with no cross-dependencies. `equilibrium.py` imports from all four. `run\_and\_plot.py` imports from `calibration.py`, `equilibrium.py`, and `statistics.py`.
 
-\---
 
 ## Results
 
@@ -195,7 +191,6 @@ out = solve\_ge(base)
 print\_diagnostics(out, base)
 ```
 
-\---
 
 ## Output
 
@@ -237,8 +232,6 @@ df3.to\_csv("table3\_results.csv", index=False)
 df4.to\_csv("table4\_results.csv", index=False)
 ```
 
-\---
-
 ## Methodological Notes
 
 ### Departures from the original paper
@@ -258,7 +251,6 @@ df4.to\_csv("table4\_results.csv", index=False)
 2. **Fraction ≤ 0.** The zero-wealth fraction (28.9% vs 24.0% for the baseline) reflects remaining differences in the age-earnings profile and Monte Carlo sampling noise.
 3. **Monte Carlo noise.** Top wealth shares exhibit minor variability (±0.3 pp) across random seeds. The seed is fixed at 123 for reproducibility.
 
-\---
 
 ## Troubleshooting
 
@@ -270,7 +262,6 @@ df4.to\_csv("table4\_results.csv", index=False)
 |`RuntimeWarning: invalid value encountered in divide`|Harmless; occurs when computing CV at ages where mean wealth is zero|
 |Very slow execution|Verify Numba is loaded: check for `Numba loaded — compiled mode` at startup|
 
-\---
 
 ## References
 
@@ -282,9 +273,6 @@ df4.to\_csv("table4\_results.csv", index=False)
 * Jordan, C.W. (1975). *Life Contingencies*. Society of Actuaries.
 * Kirkby, R. (2022). "Quantitative Macroeconomics: Lessons Learned from Fourteen Replications." *Computational Economics*, 60: 875–896.
 * Tauchen, G. (1986). "Finite State Markov-Chain Approximations to Univariate and Vector Autoregressions." *Economics Letters*, 20(2): 177–181.
-
-\---
-
 
 
 ## Licence
