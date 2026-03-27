@@ -88,7 +88,7 @@ Total runtime for the full replication (Tables 3–4, all figures, summary): **a
 |Table 3 (8 specifications, σ = 1.5)|\~50 minutes|
 |Table 4 (8 specifications, σ = 3.0)|\~50 minutes|
 |Figures (4 uncertain + 2 certain specs)|\~40 minutes|
-|**Full replication (`run\_and\_plot.py`)**|**\~2 h 30 min**|
+|**Full replication (`run_and_plot.py`)**|**\~2 h 30 min**|
 
 Without Numba, the full replication may take 10+ hours.
 
@@ -119,7 +119,7 @@ replication/
 ├── simulation.py
 ├── statistics.py
 ├── equilibrium.py
-├── run\_and\_plot.py
+├── run_and_plot.py
 └── README.md
 ```
 
@@ -128,13 +128,13 @@ replication/
 
 |File|Description|Key functions|
 |-|-|-|
-|`calibration.py`|Parameters and embedded data (Table 2)|`build\_params()`|
-|`earnings.py`|Tauchen discretisation of AR(1) earnings|`earnings\_markov()`, `initial\_z\_dist()`|
-|`household.py`|Preferences, technology, EGM solver|`egm\_backward()`, `asset\_grid()`|
-|`simulation.py`|Monte Carlo panel simulation (500K agents)|`simulate\_panel()`|
-|`statistics.py`|Distributional statistics (Gini, top shares)|`wealth\_moments()`, `age\_profiles()`|
-|`equilibrium.py`|GE solver, diagnostics, table replication|`solve\_ge()`, `replicate\_table()`|
-|**`run\_and\_plot.py`**|**Main script: produces all output**|—|
+|`calibration.py`|Parameters and embedded data (Table 2)|`build_params()`|
+|`earnings.py`|Tauchen discretisation of AR(1) earnings|`earnings_markov()`, `initial_z_dist()`|
+|`household.py`|Preferences, technology, EGM solver|`egm_backward()`, `asset_grid()`|
+|`simulation.py`|Monte Carlo panel simulation (500K agents)|`simulate_panel()`|
+|`statistics.py`|Distributional statistics (Gini, top shares)|`wealth_moments()`, `age_profiles()`|
+|`equilibrium.py`|GE solver, diagnostics, table replication|`solve_ge()`, `replicate_table()`|
+|**`run_and_plot.py`**|**Main script: produces all output**|—|
 
 ### Dependency graph
 
@@ -146,7 +146,7 @@ simulation.py ───┤
 statistics.py ───┘
 ```
 
-The four core modules (`earnings.py`, `household.py`, `simulation.py`, `statistics.py`) are standalone with no cross-dependencies. `equilibrium.py` imports from all four. `run\_and\_plot.py` imports from `calibration.py`, `equilibrium.py`, and `statistics.py`.
+The four core modules (`earnings.py`, `household.py`, `simulation.py`, `statistics.py`) are standalone with no cross-dependencies. `equilibrium.py` imports from all four. `run_and_plot.py` imports from `calibration.py`, `equilibrium.py`, and `statistics.py`.
 
 
 ## Results
@@ -155,7 +155,7 @@ The four core modules (`earnings.py`, `household.py`, `simulation.py`, `statisti
 
 ```bash
 cd replication
-python run\_and\_plot.py
+python run_and_plot.py
 ```
 
 This produces, in order:
@@ -172,23 +172,23 @@ This produces, in order:
 To replicate only the tables without generating figures, comment out sections 2–10 in `run\_and\_plot.py` and run:
 
 ```python
-from calibration import build\_params
-from equilibrium import replicate\_table
+from calibration import build_params
+from equilibrium import replicate_table
 
 base = build\_params()
-replicate\_table(base, 1.5)   # Table 3
-replicate\_table(base, 3.0)   # Table 4
+replicate_table(base, 1.5)   # Table 3
+replicate_table(base, 3.0)   # Table 4
 ```
 
 ### Single specification
 
 ```python
-from calibration import build\_params
-from equilibrium import solve\_ge, print\_diagnostics
+from calibration import build_params
+from equilibrium import solve_ge, print_diagnostics
 
-base = build\_params()
-out = solve\_ge(base)
-print\_diagnostics(out, base)
+base = build_params()
+out = solve_ge(base)
+print_diagnostics(out, base)
 ```
 
 
@@ -213,23 +213,23 @@ All figures are saved to `figures/` in PDF format at 300 DPI.
 
 |File|Description|Paper reference|
 |-|-|-|
-|`fig\_earnings.pdf`|Age-earnings profile (Corbae/Huggett data)|Figure 1|
-|`fig\_mean\_wealth.pdf`|Mean wealth by age, 4 uncertain specs|—|
-|`fig\_wealth\_profiles.pdf`|Quantiles (Mean, p50, p25, p10) in 10-year bins|Figure 3|
-|`fig\_gini\_certain.pdf`|Gini within 5-year age groups, certain lifetimes|Figure 4|
-|`fig\_gini\_uncertain.pdf`|Gini within 5-year age groups, uncertain lifetimes|Figure 5|
-|`fig\_lorenz.pdf`|Lorenz curves, 4 uncertain specs|—|
-|`fig\_quantiles.pdf`|Wealth percentile fan chart (baseline)|Figure 2|
+|`fig_earnings.pdf`|Age-earnings profile (Corbae/Huggett data)|Figure 1|
+|`fig_mean_wealth.pdf`|Mean wealth by age, 4 uncertain specs|—|
+|`fig_wealth_profiles.pdf`|Quantiles (Mean, p50, p25, p10) in 10-year bins|Figure 3|
+|`fig_gini_certain.pdf`|Gini within 5-year age groups, certain lifetimes|Figure 4|
+|`fig_gini_uncertain.pdf`|Gini within 5-year age groups, uncertain lifetimes|Figure 5|
+|`fig_lorenz.pdf`|Lorenz curves, 4 uncertain specs|—|
+|`fig_quantiles.pdf`|Wealth percentile fan chart (baseline)|Figure 2|
 
 ### Tables
 
 Tables are printed to the console. To save as CSV:
 
 ```python
-df3 = replicate\_table(base, 1.5)
-df4 = replicate\_table(base, 3.0)
-df3.to\_csv("table3\_results.csv", index=False)
-df4.to\_csv("table4\_results.csv", index=False)
+df3 = replicate_table(base, 1.5)
+df4 = replicate_table(base, 3.0)
+df3.to_csv("table3_results.csv", index=False)
+df4.to_csv("table4_results.csv", index=False)
 ```
 
 ## Methodological Notes
@@ -258,7 +258,7 @@ df4.to\_csv("table4\_results.csv", index=False)
 |-|-|
 |`ImportError: Numba needs NumPy...`|Install compatible versions: `pip install numba==0.60.0 numpy==1.26.4`|
 |`WARNING: Numba not found`|Install Numba; code runs without it but \~100x slower|
-|`NameError: name 'cert\_a0' is not defined`|Run the full script top-to-bottom; in Spyder, use `%runfile run\_and\_plot.py`|
+|`NameError: name 'cert_a0' is not defined`|Run the full script top-to-bottom; in Spyder, use `%runfile run_and_plot.py`|
 |`RuntimeWarning: invalid value encountered in divide`|Harmless; occurs when computing CV at ages where mean wealth is zero|
 |Very slow execution|Verify Numba is loaded: check for `Numba loaded — compiled mode` at startup|
 
