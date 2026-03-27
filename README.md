@@ -141,7 +141,7 @@ replication/
 ```
 calibration.py ──┐
 earnings.py ─────┤
-household.py ────┼── equilibrium.py ── run\_and\_plot.py
+household.py ────┼── equilibrium.py ── run_and_plot.py
 simulation.py ───┤
 statistics.py ───┘
 ```
@@ -175,7 +175,7 @@ To replicate only the tables without generating figures, comment out sections 2�
 from calibration import build_params
 from equilibrium import replicate_table
 
-base = build\_params()
+base = build_params()
 replicate_table(base, 1.5)   # Table 3
 replicate_table(base, 3.0)   # Table 4
 ```
