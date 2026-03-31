@@ -169,7 +169,7 @@ This produces, in order:
 
 ### Tables only
 
-To replicate only the tables without generating figures, comment out sections 2–10 in `run\_and\_plot.py` and run:
+To replicate only the tables without generating figures, comment out sections 2–10 in `run_and_plot.py` and run:
 
 ```python
 from calibration import build_params
