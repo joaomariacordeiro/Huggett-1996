@@ -14,7 +14,7 @@ The replication was produced as part of the course *Quantitative Macroeconomics 
 
 ## Acknowledgement & Disclaimer 
 
-I am thankful to Mark Hugget for his comments.
+I am thankful to Mark Huggett for his comments.
 
 Any errors are my own.
 
